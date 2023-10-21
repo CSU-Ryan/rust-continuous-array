@@ -1,12 +1,10 @@
+use crate::continuous_array::test_continuous_array;
+
 mod continuous_array;
 pub mod inputs;
 
-use crate::continuous_array::test_continuous_array;
-
-
 fn main() {
     test_continuous_array::continuous_array_loader();
-    // test_continuous_array::big_test();
 }
 
 // For LeetCode submission
