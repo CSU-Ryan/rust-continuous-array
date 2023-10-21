@@ -35,56 +35,58 @@ fn count_best_array(array: &[i32], length: i32, lowest_val: i32, highest_val: i3
     let mut count = 1;
     let mut max_count = 1;
 
-        let mut low_index = 0;
+    let mut exiting_index = 0;
 
-        let mut high = lowest_val + 1;
-        let mut low = high - length;
+    let mut entering_val = lowest_val + 1;
+    let mut exiting_val = entering_val - length;
 
 
-        removal_queue.push_back(Some(0));
-        while high <= highest_val {
-            self.if_checks += 1;
-            if count == 0 { // jumping!
-                high = match self.value_to_jump(array, length, low_index) {
-                    Some(i) => i,
-                    None => break
-                };
+    removal_queue.push_back(Some(0));
+    while entering_val <= highest_val {
+
+        if count == 0 { // We jump once the queue has landed on completely empty space.
+            entering_val = match value_to_jump(array, length, exiting_index) {
+                Some(i) => i,
+                None => break
+            };
+        }
+
+        match removal_queue.pop_front().expect("Queue is empty") {
+            Some(i) => {
+                count -= 1;
+                exiting_index = i;
+            },
+            None => ()
+        }
+
+        match array.binary_search(&entering_val) {
+            Ok(i) => {
+                count += 1;
+                removal_queue.push_back(Some(i)); // Pushes index for later use
             }
-
-            match removal_queue.pop_front().expect("Queue is empty") {
-                Some(i) => {
-                    count -= 1;
-                    low_index = i;
-                },
-                None => ()
+            Err(_) => {
+                removal_queue.push_back(None); // Fills queue to keep length of array
             }
-
-            self.contains_checks += 1; //TODO: for debugging
-            match array.binary_search(&high) {
-                Ok(i) => {
-                    count += 1;
-                    removal_queue.push_back(Some(i));
-                }
-                Err(_) => {
-                    removal_queue.push_back(None);
-                }
-            }
+        }
 
         max_count = max(max_count, count);
 
-            high += 1;
-            low = high - length;
-        }
-        max_count
+        entering_val += 1; // Shifts the window forward.
+        exiting_val = entering_val - length;
     }
+
+    max_count
 }
 
 /// Returns [`Some<i32>`] of next non-isolated value.
 ///
 /// Returns [`None`] if at end of array.
 fn value_to_jump(array: &[i32], length: i32, current_index: usize) -> Option<i32> {
-    let mut current_val;
-    let mut next_val;
+    /* Explanation of logic:
+      We compare the gap between the current and next value. If the gap is greater than the length
+      of our window, we step both values forward and repeat the process until we find a
+      non-isolated point or reach the end of the array.
+     */
 
     current_val = match array.get(current_index) {
         Some(i) => *i,
