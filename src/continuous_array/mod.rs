@@ -88,26 +88,17 @@ fn value_to_jump(array: &[i32], length: i32, current_index: usize) -> Option<i32
       non-isolated point or reach the end of the array.
      */
 
-    current_val = match array.get(current_index) {
+    let mut current_val = match array.get(current_index+1) {
         Some(i) => *i,
         None => return None
     };
 
-    next_val = match array.get(current_index+1) {
-        Some(i) => *i,
-        None => return Some(current_val)
-    };
-
-    let mut shift = 1;
-    while current_val == next_val || current_val + length < next_val {
-        shift += 1;
-        current_val = next_val;
-
-        next_val = match array.get(current_index + shift) {
-            Some(i) => *i,
-            None => return Some(current_val)
-        };
+    for next_val in array[current_index+2..].iter() {
+        if current_val + length > *next_val {
+            return Some(current_val);
+        }
+        current_val = *next_val;
     }
 
-    Some(current_val)
+    Some(array[length as usize - 1])
 }
