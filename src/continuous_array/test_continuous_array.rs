@@ -1,26 +1,21 @@
 
 pub fn test_continuous_array(name: &str, mut array: Vec<i32>, answer: i32) {
-    use crate::continuous_array::ContinuousArray;
+    use crate::continuous_array;
     use std::time;
 
     let start = time::Instant::now();
 
     array.sort();
-    let mut cont_array = ContinuousArray::new();
-    let correct = cont_array.num_changes(&array, array.len() as i32) == answer;
+    let correct = continuous_array::num_changes(&array, (array.len() as i32)) == answer;
 
     let duration = start.elapsed();
 
     let length = array.len();
-    let bin_checks = cont_array.contains_checks;
-    let if_checks = cont_array.if_checks;
 
     println!(
         "{name}:
              passed: {correct}
              length: {length}
-    binary_searches: {bin_checks}
-          if_checks: {if_checks}
                   t= {duration:?}
 ")
 }

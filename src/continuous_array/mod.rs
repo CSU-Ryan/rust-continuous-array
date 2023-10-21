@@ -1,100 +1,39 @@
 pub mod test_continuous_array;
-// pub mod continuous_sub_array;
 
 use std::cmp::max;
 use std::collections::VecDeque;
-use std::thread::current;
-// use crate::continuous_array::continuous_sub_array::ContinuousSubArray;
 
-fn binary_contains(array: &[i32], val: &i32) -> bool {
-    match array.binary_search(val) {
-        Ok(_) => true,
-        Err(_) => false
-    }
+
+/// Returns number `<i32>` of changes required to convert to continuous array.
+pub fn num_changes(array: &[i32], length: i32) -> i32 {
+    let lowest_val = array[0];
+    let highest_val = array[length as usize-1];
+
+    length - count_best_array(array, length, lowest_val, highest_val)
 }
 
-pub struct ContinuousArray {
-    // pub length: i32,
-    // pub array: Vec<i32>,
+/// Returns largest number `<i32>` of unique values contained in one continuous array.
+fn count_best_array(array: &[i32], length: i32, lowest_val: i32, highest_val: i32) -> i32 {
+    /* Explanation of logic:
+     We move a window of length array.len() across the number line, trying to find one window
+     which captures as many unique values from the array as possible.
 
-    pub if_checks: usize,
-    pub contains_checks: usize, //TODO: for debugging purposes
+     As we shift the window, we only care about the value about to leave the window, and the value
+     about to enter the window. For the entering value, we check if it exists in the array.
+     For the exiting value, we take advantage of the search we did from when this value entered the
+     array. Through use of a queue, we set up a sort of delay between when the value enters the
+     array and when it leaves. Thus, it only requires one search of the array to do two jobs.
 
-    // pub subarray: ContinuousSubArray,
-    // pub sub_arrays: Vec<ContinuousSubArray>
-}
+     Along with that, there may be significant gaps between values of the array, larger than the
+     size of the window. To skip the gap, we calculate the next non-isolated value in the array
+     using value_to_jump(), and "jump" the gap.
+    */
 
+    // The removal queue acts as the delay between a value entering the window and exiting.
+    let mut removal_queue = VecDeque::from(vec![None; length as usize - 1]);
 
-impl ContinuousArray {
-    /// Turn a [`Vec<i32>`] into a [`ContinuousArray`].
-    pub fn new() -> Self {
-        // let mut array = array.clone();
-        // array.sort();
-
-        ContinuousArray {
-            // length: array.len() as i32,
-            // array: array,
-
-            if_checks: 0, //TODO: for debugging
-            contains_checks: 0, // TODO: for debugging purposes
-
-            // subarray: ContinuousSubArray::new(0),
-            // sub_arrays: Vec::new()
-        }
-    }
-
-    /// Returns number `<i32>` of changes required to convert to continuous array.
-    pub fn num_changes(&mut self, array: &[i32], length: i32) -> i32 {
-        let lowest_val = array[0];
-        let highest_val = array[length as usize-1];
-        // let lowest_val = *self.array.iter().min().expect("Array is empty");
-        // let highest_val = *self.array.iter().max().expect("Array is empty");
-
-        // println!("{:?}", self.array);
-        length - self.count_best_array(array, length, lowest_val, highest_val)
-    }
-
-    /// Returns [`Some<i32>`] of next value to jump over gap.
-    ///
-    /// Returns [`None`] if at end of array.
-    fn value_to_jump(&mut self, array: &[i32], length: i32, current_index: usize) -> Option<i32> {
-        let mut current_val;
-        let mut next_val;
-
-        current_val = match array.get(current_index) {
-            Some(i) => *i,
-            None => return None // TODO: figure out return
-        };
-
-        next_val = match array.get(current_index+1) {
-            Some(i) => *i,
-            None => return Some(current_val)
-        };
-
-        // println!("current value for jumping: {}", current_val);
-
-        let mut shift = 1;
-        while current_val == next_val || current_val + length < next_val {
-            self.if_checks += 1;
-            // println!("skipped {}", current_val);
-            shift += 1;
-            current_val = next_val;
-
-            next_val = match array.get(current_index + shift) {
-                Some(i) => *i,
-                None => return Some(current_val)
-            }
-        }
-
-        Some(current_val)
-    }
-
-    /// Returns largest number `<i32>` of unique values contained in one continuous array.
-    fn count_best_array(&mut self, array: &[i32], length: i32, lowest_val: i32, highest_val: i32) -> i32 {
-        let mut removal_queue = VecDeque::from(vec![None; length as usize - 1]);
-
-        let mut count = 1;
-        let mut max_count = 1;
+    let mut count = 1;
+    let mut max_count = 1;
 
         let mut low_index = 0;
 
@@ -131,7 +70,7 @@ impl ContinuousArray {
                 }
             }
 
-            max_count = max(max_count, count);
+        max_count = max(max_count, count);
 
             high += 1;
             low = high - length;
@@ -140,3 +79,33 @@ impl ContinuousArray {
     }
 }
 
+/// Returns [`Some<i32>`] of next non-isolated value.
+///
+/// Returns [`None`] if at end of array.
+fn value_to_jump(array: &[i32], length: i32, current_index: usize) -> Option<i32> {
+    let mut current_val;
+    let mut next_val;
+
+    current_val = match array.get(current_index) {
+        Some(i) => *i,
+        None => return None
+    };
+
+    next_val = match array.get(current_index+1) {
+        Some(i) => *i,
+        None => return Some(current_val)
+    };
+
+    let mut shift = 1;
+    while current_val == next_val || current_val + length < next_val {
+        shift += 1;
+        current_val = next_val;
+
+        next_val = match array.get(current_index + shift) {
+            Some(i) => *i,
+            None => return Some(current_val)
+        };
+    }
+
+    Some(current_val)
+}
