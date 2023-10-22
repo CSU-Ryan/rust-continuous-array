@@ -1,19 +1,18 @@
-pub mod test_continuous_array;
-
 use std::cmp::max;
 use std::collections::VecDeque;
 
+pub mod test_continuous_array;
 
 /// Returns number `<i32>` of changes required to convert to continuous array.
-pub fn num_changes(array: &[i32], length: i32) -> i32 {
+pub fn num_changes(array: &[i32], length: usize) -> usize {
     let lowest_val = array[0];
-    let highest_val = array[length as usize-1];
+    let highest_val = array[length - 1];
 
     length - count_best_array(array, length, lowest_val, highest_val)
 }
 
 /// Returns largest number `<i32>` of unique values contained in one continuous array.
-fn count_best_array(array: &[i32], length: i32, lowest_val: i32, highest_val: i32) -> i32 {
+fn count_best_array(array: &[i32], length: usize, lowest_val: i32, highest_val: i32) -> usize {
     /* Explanation of logic:
      We move a window of length array.len() across the number line, trying to find one window
      which captures as many unique values from the array as possible.
@@ -30,7 +29,7 @@ fn count_best_array(array: &[i32], length: i32, lowest_val: i32, highest_val: i3
     */
 
     // The removal queue acts as the delay between a value entering the window and exiting.
-    let mut removal_queue = VecDeque::from(vec![None; length as usize - 1]);
+    let mut removal_queue = VecDeque::from(vec![None; length - 1]);
 
     let mut count = 1;
     let mut max_count = 1;
@@ -38,16 +37,15 @@ fn count_best_array(array: &[i32], length: i32, lowest_val: i32, highest_val: i3
     let mut exiting_index = 0;
 
     let mut entering_val = lowest_val + 1;
-    let mut exiting_val = entering_val - length;
-
+    let mut exiting_val = entering_val - length as i32;
 
     removal_queue.push_back(Some(0));
     while entering_val <= highest_val {
-
-        if count == 0 { // We jump once the queue has landed on completely empty space.
+        if count == 0 {
+            // We jump once the queue has landed on completely empty space.
             entering_val = match value_to_jump(array, length, exiting_index) {
                 Some(i) => i,
-                None => break
+                None => break,
             };
         }
 
@@ -55,8 +53,8 @@ fn count_best_array(array: &[i32], length: i32, lowest_val: i32, highest_val: i3
             Some(i) => {
                 count -= 1;
                 exiting_index = i;
-            },
-            None => ()
+            }
+            None => (),
         }
 
         match array.binary_search(&entering_val) {
@@ -72,7 +70,7 @@ fn count_best_array(array: &[i32], length: i32, lowest_val: i32, highest_val: i3
         max_count = max(max_count, count);
 
         entering_val += 1; // Shifts the window forward.
-        exiting_val = entering_val - length;
+        exiting_val = entering_val - length as i32;
     }
 
     max_count
@@ -81,24 +79,24 @@ fn count_best_array(array: &[i32], length: i32, lowest_val: i32, highest_val: i3
 /// Returns [`Some<i32>`] of next non-isolated value.
 ///
 /// Returns [`None`] if at end of array.
-fn value_to_jump(array: &[i32], length: i32, current_index: usize) -> Option<i32> {
+fn value_to_jump(array: &[i32], length: usize, current_index: usize) -> Option<i32> {
     /* Explanation of logic:
-      We compare the gap between the current and next value. If the gap is greater than the length
-      of our window, we step both values forward and repeat the process until we find a
-      non-isolated point or reach the end of the array.
-     */
+     We compare the gap between the current and next value. If the gap is greater than the length
+     of our window, we step both values forward and repeat the process until we find a
+     non-isolated point or reach the end of the array.
+    */
 
-    let mut current_val = match array.get(current_index+1) {
+    let mut current_val = match array.get(current_index + 1) {
         Some(i) => *i,
-        None => return None
+        None => return None,
     };
 
-    for next_val in array[current_index+2..].iter() {
-        if current_val + length > *next_val {
+    for next_val in array[current_index + 2..].iter() {
+        if current_val + (length as i32) > *next_val {
             return Some(current_val);
         }
         current_val = *next_val;
     }
 
-    Some(array[length as usize - 1])
+    Some(array[length - 1])
 }
