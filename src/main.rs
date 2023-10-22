@@ -10,9 +10,8 @@ fn main() {
 // For LeetCode submission
 
 // impl Solution {
-//     pub fn min_operations(nums: Vec<i32>) -> i32 {
-//         let mut cont_array = ContinuousArray::from(nums);
-//
-//         cont_array.num_changes()
+//     pub fn min_operations(mut nums: Vec<i32>) -> i32 {
+//         nums.sort();
+//         num_changes(&nums, (nums.len() as i32);
 //     }
 // }
