@@ -91,7 +91,7 @@ fn value_to_jump(array: &[i32], length: usize, current_index: usize) -> Option<i
         None => return None,
     };
 
-    for next_val in array[current_index + 2..].iter() {
+    for next_val in array[(current_index + 2)..].iter() {
         if current_val + (length as i32) > *next_val {
             return Some(current_val);
         }
